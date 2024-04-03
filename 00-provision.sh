@@ -6,23 +6,22 @@ then
   exit
 fi
 
-if [ `hostname` != "node0" ]
+if [ `hostname` != "console" ]
 then
-  printf "You must run this from node0\n"
+  printf "You must run this from the console node.\n"
   exit
 fi
 
 export credentials=$(cat /vagrant/.edbtoken)
 
-rm -rf speedy
+if [ -d "pemdemobagrant" ]; then
+  rm -rf pemdemovagrant
+fi
 
-# PGD 5.x
-curl -1sLf "https://downloads.enterprisedb.com/$credentials/postgres_distributed/setup.rpm.sh" | sudo -E bash
-
-yum -y install wget chrony tpaexec tpaexec-deps
-# Config file: /etc/chrony.conf
-systemctl enable --now chronyd
-chronyc sources
+# Repo
+curl -1sLf "https://downloads.enterprisedb.com/$credentials/enterprise/setup.rpm.sh" | sudo -E bash
+export LC_ALL=en_US.UTF-8
+yum -y install tpaexec
 
 cat >> ~/.bash_profile <<EOF
 export PATH=$PATH:/opt/EDB/TPA/bin
@@ -35,51 +34,44 @@ export EDB_SUBSCRIPTION_TOKEN=${credentials}
 
 # Install dependencies
 #tpaexec setup
-tpaexec setup --use-2q-ansible
+tpaexec setup
 
 ip=192.168.1
 cat > hostnames.txt << EOF
-node1 $ip.11
-node2 $ip.12
-node3 $ip.13
-node4 $ip.14
-node5 $ip.15
-node6 $ip.16
+pg1 $ip.11
+pg2 $ip.12
+barman $ip.13
+pemserver $ip.14
 EOF
 
 # Test
 tpaexec selftest
 
-tpaexec configure speedy \
-    --architecture PGD-Always-ON \
+tpaexec configure pemdemovagrant \
+    --architecture M1 \
+    --enable-efm \
     --redwood \
     --platform bare \
     --hostnames-from hostnames.txt \
-    --edb-postgres-advanced 14 \
+    --edb-postgres-advanced 15 \
     --no-git \
-    --location-names dc1 \
-    --pgd-proxy-routing local \
     --hostnames-unsorted
 
 # Modify pg_hba.conf
-cp peedy/config.yml speedy/config.yml.1
-
-# Remove keyring
-sed -i 's/keyring/#keyring/' speedy/config.yml
-sed -i 's/vault/#vault/' speedy/config.yml
-
+cp pemdemovagrant/config.yml pemdemovagrant/config.yml.1
+cp configyml.backup pemdemovagrant/config.yml
 
 # Provision
-tpaexec provision speedy
+tpaexec provision pemdemovagrant
 
 # Copying ssh keys
-rm -f speedy/id_speedy.pub
-rm -f speedy/id_speedy
-cp ~/.ssh/id_rsa.pub speedy/id_speedy.pub
-cp ~/.ssh/id_rsa speedy/id_speedy
-
-# Ping
-tpaexec ping speedy
+rm -f pemdemovagran/id_pemdemovagrant.pub
+rm -f pemdemovagrant/id_pemdemovagrant
+cp ~/.ssh/id_rsa.pub pemdemovagrant/id_pemdemovagrant.pub
+cp ~/.ssh/id_rsa pemdemovagrant/id_pemdemovagrant
 
 # Deploy
-tpaexec deploy speedy
+tpaexec deploy pemdemovagrant
+
+#Selftest
+tpaexec test pemdemovagrant -v

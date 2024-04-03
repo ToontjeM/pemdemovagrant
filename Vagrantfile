@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "console" do |nodes|
     nodes.vm.box = var_box
     nodes.vm.hostname= "console"
-    nodes.vm.network "private_network", ip: "192.168.1.10", name: "HostOnly", virtualbox__intnet: true
+    nodes.vm.network "public_network", ip: "192.168.0.210", bridge: "enx24f5a28b44a6"
     nodes.vm.provision :hosts, :sync_hosts => true
     nodes.vm.provider "virtualbox" do |v|
       v.memory = "512"
@@ -39,9 +39,9 @@ Vagrant.configure("2") do |config|
     config.vm.define "pg#{i}" do |nodes|
       nodes.vm.box = var_box
       nodes.vm.hostname = "pg#{i}"
-      nodes.vm.network "private_network", ip: "192.168.1.1#{i}", name: "HostOnly", virtualbox__intnet: true
+      nodes.vm.network "public_network", ip: "192.168.0.21#{i}", bridge: "enx24f5a28b44a6"
       nodes.vm.provision :hosts, :sync_hosts => true
-      nodes.vm.network "forwarded_port", guest: 5444, host: "544#{i}"
+#      nodes.vm.network "forwarded_port", guest: 5444, host: "544#{i}"
       
       nodes.vm.provider "virtualbox" do |v|
         v.memory = "1024"
@@ -70,7 +70,7 @@ Vagrant.configure("2") do |config|
     config.vm.define "barman" do |nodes|
       nodes.vm.box = var_box
       nodes.vm.hostname = "barman"
-      nodes.vm.network "private_network", ip: "192.168.1.1#{i}", name: "HostOnly", virtualbox__intnet: true
+      nodes.vm.network "public_network", ip: "192.168.0.21#{i}", bridge: "enx24f5a28b44a6"
       nodes.vm.provider "virtualbox" do |v|
         v.memory = "512"
         v.cpus = "1"
@@ -100,7 +100,8 @@ Vagrant.configure("2") do |config|
     config.vm.define "pemserver" do |nodes|
       nodes.vm.box = var_box
       nodes.vm.hostname = "pemserver"
-      nodes.vm.network "private_network", ip: "192.168.1.1#{i}", name: "HostOnly", virtualbox__intnet: true
+      nodes.vm.network "public_network", ip: "192.168.0.21#{i}", bridge: "enx24f5a28b44a6"
+      nodes.vm.network "forwarded_port", guest: 443, host: 8443
       nodes.vm.provider "virtualbox" do |v|
         v.memory = "2048"
         v.cpus = "2"
@@ -110,13 +111,11 @@ Vagrant.configure("2") do |config|
       nodes.vm.synced_folder ".", "/vagrant"
       nodes.vm.synced_folder "./keys", "/vagrant_keys"
 
-      nodes.vm.network "forwarded_port", guest: 443, host: 443
       nodes.vm.provision "shell", inline: <<-SHELL
         sudo systemctl restart sshd
         echo -e "root\nroot" | passwd root
 
         sh /vagrant_keys/config.sh
-
         sudo sh /vagrant_keys/config.sh
         sudo sh /vagrant_keys/copy_keys.sh
         

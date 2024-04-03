@@ -6,11 +6,13 @@ The objective of the demo environment is to show the value of Postgres Enterpris
 TPA will deploy the following components:
 | Name | IP | Task | Remarks |
 | -------- | -------- | -------- | -------- |
-| console| 192.168.1.10 | Console | TPA installed |
-| pg1| 192.168.1.11 | Postgres primary | PEM agent<br>Backup target<br>Port 5444 open |
-| pg2 | 192.168.1.12 | Postgres replica | PEM agent |
-| barman | 192.168.1.13 | Barman | PEM agent <br> Backup target<br>EFM witness |
-| pemserver | 192.168.1.14 | PEM | Port 443 open |
+| console| 192.168.0.210 | Console | TPA installed |
+| pg1| 192.168.0.211 | Postgres primary | PEM agent<br>Backup target<br>Port 5444 open |
+| pg2 | 192.168.0.212 | Postgres replica | PEM agent |
+| barman | 192.168.0.213 | Barman | PEM agent <br> Backup target<br>EFM witness |
+| pemserver | 192.168.0.214 | PEM | Port 443 open |
+
+The environment is currently deployed in a bridged network, hence the IP addresses are allocated in my home network. Adjust the IP addresses to your needs in `Vagrantfile` and `configyml.backup`.
 
 The EFM cluster which is created is called `pemdemovagrant`. 
 
@@ -31,7 +33,7 @@ This enables you to use the streaming replication dashboard.
 
 Another enhancement would be to set up a cron job which runs pgbench like this:
 ```
-0,30 * * * * (PGPASSWORD='&I$iHuprYGOljC1CKoljC7H%7$HTmLLl' pgbench -h localhost -p 5444 -T 100 -c 10 -j 2 -U enterprisedb postgres) 2>&1 |logger -t pgbench
+0,30 * * * * (PGPASSWORD='&I$iHuprYGOljC1CKoljC7H%7$HTmLLl' pgbench -h 192.168.0.211 -p 5444 -T 100 -c 10 -j 2 -U enterprisedb postgres) 2>&1 |logger -t pgbench
 ```
 Pgbench is already initialized into the `postgres` database by the provisioning script.
 

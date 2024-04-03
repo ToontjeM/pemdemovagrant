@@ -18,6 +18,8 @@ if [ -d "pemdemobagrant" ]; then
   rm -rf pemdemovagrant
 fi
 
+. ./env.sh
+
 # Repo
 curl -1sLf "https://downloads.enterprisedb.com/$credentials/enterprise/setup.rpm.sh" | sudo -E bash
 export LC_ALL=en_US.UTF-8
@@ -26,10 +28,12 @@ yum -y install tpaexec
 cat >> ~/.bash_profile <<EOF
 export PATH=$PATH:/opt/EDB/TPA/bin
 export EDB_SUBSCRIPTION_TOKEN=${credentials}
+export LC_ALL=en_US.UTF-8
 EOF
 #source ~/.bash_profile
 export PATH=$PATH:/opt/EDB/TPA/bin
 export EDB_SUBSCRIPTION_TOKEN=${credentials}
+export LC_ALL=en_US.UTF-8
 
 
 # Install dependencies
@@ -73,5 +77,17 @@ cp ~/.ssh/id_rsa pemdemovagrant/id_pemdemovagrant
 # Deploy
 tpaexec deploy pemdemovagrant
 
-#Selftest
-tpaexec test pemdemovagrant -v
+# Difficult way to get a clean password from ansible
+raw=$(tpaexec show-password pemdemovagrant enterprisedb)
+IFS=$'\n' read -r clean <<< "$output"
+export EDBPASSWORD="$clean"
+
+raw=$(tpaexec show-password pemdemovagrant dba)
+IFS=$'\n' read -r clean <<< "$output"
+export DBAPASSWORD="$clean"
+
+IP=192.168.0.14
+printf "${G}--- Initializing pgbench on ${R}pg1${G} --- ${N}\n"
+PGPASSWORD=$EDBPASSWORD pgbench -h $IP -p 5444 -i -U enterprisedb postgres
+printf "${G}--- Provisioning complete. You can now access PEM on ${R}https://$IP/pem${G} using userid ${R}enterprisedb${G} and password ${R}$EDBPASSWORD\n"env
+printf "${G}--- There is also a user ${R}dba${G} with password ${R}$DBAPASSWORD\n"

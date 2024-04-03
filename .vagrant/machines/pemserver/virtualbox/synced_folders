@@ -1,1 +1,0 @@
-{"virtualbox":{"/vagrant":{"disabled":false,"guestpath":"/vagrant","hostpath":"/home/ton/pemdemovagrant","__vagrantfile":true},"/vagrant_keys":{"guestpath":"/vagrant_keys","hostpath":"/home/ton/pemdemovagrant/keys","disabled":false,"__vagrantfile":true}}}

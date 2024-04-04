@@ -10,7 +10,7 @@
 
 [Barman (WIP)](usecases/barman.md)
 
-[Data Dictionary](usecsaes/datadictionary.md)
+[Data Dictionary](usecases/datadictionary.md)
 
 [REST API (WIP)](usecases/restapi.md)
 

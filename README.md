@@ -47,14 +47,18 @@ A file called `.edbtoken` with your EDB repository 2.0 token. This toen can be f
 ## Demo prep
 ### Provisioning VM's.
 Provision the hosts using `vagrant up`. This will create the bare virtual machines. These machines will have the current directory mounted in their filesystem under `/vagrant`
-### Provisioning environment
+
+### Provisioning software using TPA
 SSH into the `console` using `vagrant ssh console` and become root using `sudo - su`
 
 From the `/vagrant` directory, run `00-provision.sh` to deploy the environment. This deployment will take appx. 20 minutes to complete.
 
 After successful deployment PEM should be available on `https://<IP of the pemserver>/pem`. 
 
+### Passwords
 PEM user is `enterprisedb` and the access password for this user can be revealed using `tpaexec show-password pemdemovagrant enterprisedb`. I suggest you copy this password on your clipboard because you will need it in various places.
+
+There is a second user `DBA` in case you need it. Its password can be revealed using tpaexec show-password pemdemovagrant dba`
 
 ### Configuring EFM support in PEM
 After setting up the demo you need to disconnect from PG1 and PG2, add the EFM parameters to the advanced properties of the agent of pg1 and pg2. 
@@ -99,14 +103,14 @@ The provisioning script initializes Pgbench into the `postgres` database on `pg1
 
 ### Enable all probes
 To be able to show all use cases you have to enable extra probes:
-In the top menu, select `Management / Manage Probes...`
-Click `manage Custom Probes` and switch `Show System Probes?` to On.
-Enable all probes except `xDB Replication` and the `PGD` probes. We are not using PGD here (yet?).
-
+- In the top menu, select `Management / Manage Probes...`
+- Click `manage Custom Probes` and switch `Show System Probes?` to On.
+- Enable all probes except `xDB Replication` and the `PGD` probes. We are not using PGD here (yet?).
+- Make sure you click the `Save` icon at the top of the table.
 
 
 ## Demo cleanup
 To clean up the demo environment you just have to run `99-deprovision.sh`. This script will remove the virtual machines and the cluster configuration.
 
-### Fixes TODO
-![alt text](image.png)
+## TODO
+![](images/streamingreplication.png)

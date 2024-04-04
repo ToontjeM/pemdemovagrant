@@ -1,7 +1,7 @@
 # Postgres Enterprise Manager demo
 
 ## Supported demo use cases
-| Usable | WIP |
+| Usable | Work in progress |
 | ---- | ---- |
 | [Overview PEM dashboards and Alerts](usecases/dashboards.md) |  [REST API (WIP)](usecases/restapi.md) |
 | [Performance Diagnostics](usecases/performance.md) | [Barman (WIP)](usecases/barman.md) |

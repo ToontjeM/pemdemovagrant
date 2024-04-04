@@ -29,8 +29,9 @@ Vagrant Hosts plug-in (`vagrant plugin install vagrant-hosts`)
 A file called `.edbtoken` with your EDB repository 2.0 token. This toen can be found in your EDB account profile here: https://www.enterprisedb.com/accounts/profile
 
 ## Demo prep
+### Provisioning VM's.
 Provision the hosts using `vagrant up`. This will create the bare virtual machines. These machines will have the current directory mounted in their filesystem under `/vagrant`
-
+### Provisioning environment
 SSH into the `console` using `vagrant ssh console` and become root using `sudo - su`
 
 From the `/vagrant` directory, run `00-provision.sh` to deploy the environment. This deployment will take appx. 20 minutes to complete.
@@ -39,85 +40,64 @@ After successful deployment PEM should be available on `https://<IP of the pemse
 
 PEM user is `enterprisedb` and the access password for this user can be revealed using `tpaexec show-password pemdemovagrant enterprisedb`. I suggest you copy this password on your clipboard because you will need it in various places.
 
-*Important:* After setting up the demo you need to disconnect from PG1 and PG2, add the EFM parameters to the advanced properties of the agent of pg1 and pg2. 
+### Configuring EFM support in PEM
+After setting up the demo you need to disconnect from PG1 and PG2, add the EFM parameters to the advanced properties of the agent of pg1 and pg2. 
 ```
 EFM cluster name : pemdemovagrant
 EFM installation path : /usr/edb/efm-4.7/bin/
 ```
+You can check the EFM cluster status by doing the following:
+```
+vagrant ssh pg1
+Last login: Thu Apr  4 09:58:00 2024 from 10.0.2.2
+[vagrant@pg1 ~]$ sudo su - efm
+Last login: Thu Apr  4 11:01:25 UTC 2024 on pts/0
+[efm@pg1 ~]$ /usr/edb/efm-4.7/bin/efm cluster-status pemdemovagrant
+Cluster Status: pemdemovagrant
+
+	Agent Type  Address              DB       VIP
+	----------------------------------------------------------------
+	Primary     192.168.0.211        UP
+	Standby     192.168.0.212        UP
+	Witness     192.168.0.213        N/A
+
+Allowed node host list:
+	192.168.0.213 192.168.0.211 192.168.0.212 192.168.0.214
+
+Membership coordinator: 192.168.0.213
+
+Standby priority host list:
+	192.168.0.212
+
+Promote Status:
+
+	DB Type     Address              WAL Received LSN   WAL Replayed LSN   Info
+	---------------------------------------------------------------------------
+	Primary     192.168.0.211                           0/DCB2048
+	Standby     192.168.0.212        0/DCB2048          0/DCB2048
+
+	Standby database(s) in sync with primary. It is safe to promote.
+```
+### Configuring pgbench
 The provisioning script initializes Pgbench into the `postgres` database on `pg1` and creates a 30 min schedule cron to run pgbench on this database. 
 
-## Demo flow
 
-### Overview PEM dashboards
-Open a broweser, go to `http://<pemserver IP>/pem` and log in using user `enterprisedb` and the password you got at the end of the provisioning process.
+## Demo use cases
 
-Give an overview of the UI and the dashboards.
-- Select Monitoring
-- Select Global Overview / pg1 / Alerts. You see one alert. Deep-dive into that alert.
-- Select pg1 / Alerts. Click on the alert (Swap consumption percentage) and explain settings. Explain notification methods.
-- Acknowledge the alert.
-- Select Home / Alerts to show all alerts.
+[Overview PEM dashboards and Alerts](usecases/dashboards.md)
 
-#### Alerts overview
-- Right-click on pg1 and select Management / Manage Probes
-- Show some system probes (eg. Database Statistics)
-- Show table `pemdata.table_statistics` which contains the same data.
-- Right-click on pg1 and select Management / Manage Alerts. 
-- Select Alert Templates, Database size and press th pencil.
-- Show Probe dependency and the tabe used in the SQL tab.
-- Show Alert Templates, Email Templates.
+[Index Advisor](usecases/indexadvisor.md)
 
-### Index Advisor
-- select `pg1` and select Tools / Server /  SQL Profiler / Create Trace
-- Enter trace details
-- Right-click on database `postgres` on `pg1` and select Query Tool
-- Create a table using `create table t_test(id serial, name text);`.
-- Generate data using `insert into t_test(name) select 'Test' from generate_series(1,2000000);`
-- Retrieve a record using `select id from t_test where id=1234567;`
-- Select the SQL Profiler tab and select the query from the log. You can use the filter for this.
-- Click on the Table icon in the plan and notice the node type and the cost of the query (10266.67)
-- Open the index Advisor (graph icon in the top). Notice the differenc ein Node Type.
-- Select the `t_test` table in the Suggested indexes pane and select Ok.
-- Run the same query again and find the query in the SQL Profile pane again. Notice the Node Type and the total cost (4.45).
+[Performance Diagnostics](usecases/performance.md)
 
-### Performance diagnostics
-- Select pg1 and from the top meno, select the overall dashboard.
-- Open a teminal and get the password for user `dba` using `taexec show-password pemdemovagrant dba`.
-- In the same terminal, generate traffic using `pgbench -h localhost -p 5444 -i -U dba postgres` and then `pgbench -h localhost -p 5444 -T 100 -c 10 -j 2 -U dba postgres`. 
-- Select Tools / Server / Performance diagostics and walk through the Wait events dertails options.
+[Barman (WIP)](usecases/barman.md)
 
-Show barman graphs
-- Select the Barman server and select the dashboard.
+[Data Dictionary](usecsaes/datadictionary.md)
 
-### Data dictionary
-Open database `pem` on the pemserver and show three schemas for PEM configuration (`pem`), PEM data (`pemdata`) and PEM hostorical data (`pemhstory`).
-- Right-click on pem/Tables/agent and select Edit/View data / All rows.
-- Right-click on `agent` and select Query Tool and show that you can query the agent table using `select * from pem.agent`.
-- Do the same for `agent_config`
-- Do the same for several tables in the `pemdata` schema. Specifically show `cpu_usage`
-- Show `cpu-usage` in `pemhistory` and explain the difference between `pemdata` and `pemhistory`.
+[REST API (WIP)](usecases/restapi.md)
 
 ## Demo cleanup
-To clean up the demo environment you just have to run `99-deprovision.sh`. This script will remove the docker containers and the cluster configuration.
+To clean up the demo environment you just have to run `99-deprovision.sh`. This script will remove the virtual machines and the cluster configuration.
 
-## Closing remarks
-This demo is broken on Docker Engine V25 and beyond (eg. Docker Desktop for Mac v4.27 and later). You will get the following error:
-```
-TASK [sys : Enable rc-local service] *********************************************************************************************************************************************************************************************************
-fatal: [pg1]: FAILED! => {"changed": false, "cmd": "/usr/bin/systemctl", "msg": "Failed to connect to bus: No such file or directory", "rc": 1, "stderr": "Failed to connect to bus: No such file or directory\n", "stderr_lines": ["Failed to connect to bus: No such file or directory"], "stdout": "", "stdout_lines": []}
-```
-This is a Docker Engine issue and the only way i found to work around this is to run a pre-V25 Docker Engine. For Docker Desktop for Mac this is version 4.26.1.
-
-## Fixes TODO
+### Fixes TODO
 ![alt text](image.png)
-
-Streaming setup
-
-OS dashboards not working
-
-## Enhancements
-
-REST API demo flow
-
-
-

@@ -4,9 +4,10 @@ Host *
     UserKnownHostsFile=/dev/null
 EOF
 
-if [ ! -d "/root/.ssh" ];
+if [ ! -d "/root/.ssh" ]; then
     mkdir /root/.ssh
 fi
+
 cat > /root/.ssh/config <<EOF
 Host *
     StrictHostKeyChecking no

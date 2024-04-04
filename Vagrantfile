@@ -101,7 +101,6 @@ Vagrant.configure("2") do |config|
       nodes.vm.box = var_box
       nodes.vm.hostname = "pemserver"
       nodes.vm.network "public_network", ip: "192.168.0.21#{i}", bridge: "enx24f5a28b44a6"
-      nodes.vm.network "forwarded_port", guest: 443, host: 8443
       nodes.vm.provider "virtualbox" do |v|
         v.memory = "2048"
         v.cpus = "2"

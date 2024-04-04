@@ -14,6 +14,26 @@
 
 [REST API (WIP)](usecases/restapi.md)
 
+[Audit Manager (WIP)](usecases/auditmanager.md)
+
+[Auto Discovery (WIP)](usecases/autodiscovery.md)
+
+[Capacity Manager (WIP)](usecases/capacitymanager.md)
+
+[Log Manager (WIP)](usecases/logmanager.md)
+
+[Manage Probes (WIP)](usecases/probes.md)
+
+[Postgres Expert (WIP)](usecases/pgexpert.md)
+
+[Postgres Log Analysis Expert (WIP)](usecases/loganalysis.md)
+
+[Scheduled Tasks (WIP)](usecases/schedtasks.md)
+
+[Tuning Wizard (WIP)](usecases/tuningwizard.md)
+
+[Reports (WIP)](usecases/reports.md)
+
 ## Intro
 
 This demo is built for running on Vagrant and is using the Trusted Postgres Architect (TPA) to deploy a 2-node cluster managed by EDB Failover Manager, a Barman server and a PEM server.

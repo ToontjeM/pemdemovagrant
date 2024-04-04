@@ -26,7 +26,7 @@ cat >> ~/.bash_profile <<EOF
 export PATH=$PATH:/opt/EDB/TPA/bin
 export EDB_SUBSCRIPTION_TOKEN=${credentials}
 export LC_ALL=en_US.UTF-8
-EOF
+EOFsud
 #source ~/.bash_profile
 export PATH=$PATH:/opt/EDB/TPA/bin
 export EDB_SUBSCRIPTION_TOKEN=${credentials}
@@ -82,6 +82,14 @@ raw=$(tpaexec show-password pemdemovagrant dba)
 IFS=$'\n' read -r clean <<< "$raw"
 export DBAPASSWORD="$clean"
 
-IP=192.168.0.214
-printf "${G}--- Provisioning complete. You can now access PEM on ${R}https://$IP/pem${G} using userid ${R}enterprisedb${G} and password ${R}$EDBPASSWORD\n"
+printf "${G}--- Initializing pgbench in database ${R}postgres${G} on ${R}pg1${G} and add crontab to run on 30 min intervals.\n"
+PG1IP=192.168.0.211
+ssh $PG1IP << EOF
+sudo su - enterprisedb 
+pgbench -h localhost -p 5444 -i -U enterprisedb postgres
+echo "0,30 * * * * pgbench -h localhost -p 5444 -T 100 -c 10 -j 2 -U enterprisedb postgres" | crontab -
+EOF
+
+PEMSERVERIP=192.168.0.214
+printf "${G}--- Provisioning complete. You can now access PEM on ${R}https://$PEMSERVERIP/pem${G} using userid ${R}enterprisedb${G} and password ${R}$EDBPASSWORD\n"
 printf "${G}--- There is also a user ${R}dba${G} with password ${R}$DBAPASSWORD\n"

@@ -36,8 +36,8 @@ cluster_vars:
     role_attrs:
     - superuser
     - replication
-    postgres_hba_settings:
-    - host all all 0.0.0.0/0 scram-sha-256
+  postgres_hba_settings:
+  - host all all 0.0.0.0/24 scram-sha-256
 
 instance_defaults:
   platform: bare

@@ -17,29 +17,39 @@ The environment is currently deployed in a bridged network, hence the IP address
 The EFM cluster which is created is called `pemdemovagrant`. 
 
 Status of the EFM cluster can be shown using `docker exec -it pg1 bash -c "/usr/edb/efm-4.7/bin/efm cluster-status pemdemovagrant"`
+## Pre-requisites
+To deploy this demo the following needs to be installed in the PC from which you are going to deploy the demo:
+
+VirtualBox (https://www.virtualbox.org/)
+
+Vagrant (https://www.vagrantup.com/)
+
+Vagrant Hosts plug-in (`vagrant plugin install vagrant-hosts`)
+
+A file called `.edbtoken` with your EDB repository 2.0 token. This toen can be found in your EDB account profile here: https://www.enterprisedb.com/accounts/profile
 
 ## Demo prep
-Run `00-provision.sh` to provision the Postgres containers (pg1 and pg2), the barman container (barman) and the PEM container (pemserver). This deployment will take appx. 20 minutes to complete.
-After successful deployment PEM should be available on `https://localhost/pem`. Sometimes it takes a few minutes for the PEM container to fully stabelize. You can see that happening in your Docker Desktop Dashboard where the CPU of the container is still spiking. Wait for the CPU to stabelize before to continue.
+Provision the hosts using `vagrant up`. This will create the bare virtual machines. These machines will have the current directory mounted in their filesystem under `/vagrant`
+
+SSH into the `console` using `vagrant ssh console` and become root using `sudo - su`
+
+From the `/vagrant` directory, run `00-provision.sh` to deploy the environment. This deployment will take appx. 20 minutes to complete.
+
+After successful deployment PEM should be available on `https://<IP of the pemserver>/pem`. 
 
 PEM user is `enterprisedb` and the access password for this user can be revealed using `tpaexec show-password pemdemovagrant enterprisedb`. I suggest you copy this password on your clipboard because you will need it in various places.
 
-*Important:* After setting up the demo you need to disconnect from PG1 and PG2, add the EFM parameters to Propeties / Advanced. 
+*Important:* After setting up the demo you need to disconnect from PG1 and PG2, add the EFM parameters to the advanced properties of the agent of pg1 and pg2. 
 ```
 EFM cluster name : pemdemovagrant
 EFM installation path : /usr/edb/efm-4.7/bin/
 ```
-This enables you to use the streaming replication dashboard.
-
-Another enhancement would be to set up a cron job which runs pgbench like this:
-```
-0,30 * * * * (PGPASSWORD='&I$iHuprYGOljC1CKoljC7H%7$HTmLLl' pgbench -h 192.168.0.211 -p 5444 -T 100 -c 10 -j 2 -U enterprisedb postgres) 2>&1 |logger -t pgbench
-```
-Pgbench is already initialized into the `postgres` database by the provisioning script.
+The provisioning script initializes Pgbench into the `postgres` database on `pg1` and creates a 30 min schedule cron to run pgbench on this database. 
 
 ## Demo flow
+
 ### Overview PEM dashboards
-Open a broweser, go to http://localhost/pem and log in using user `enterprisedb` and the password you got at the end of the provisioning process.
+Open a broweser, go to `http://<pemserver IP>/pem` and log in using user `enterprisedb` and the password you got at the end of the provisioning process.
 
 Give an overview of the UI and the dashboards.
 - Select Monitoring

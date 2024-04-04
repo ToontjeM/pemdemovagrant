@@ -1,5 +1,21 @@
 # Postgres Enterprise Manager demo
 
+## Supported demo use cases
+
+[Overview PEM dashboards and Alerts](usecases/dashboards.md)
+
+[Index Advisor](usecases/indexadvisor.md)
+
+[Performance Diagnostics](usecases/performance.md)
+
+[Barman (WIP)](usecases/barman.md)
+
+[Data Dictionary](usecsaes/datadictionary.md)
+
+[REST API (WIP)](usecases/restapi.md)
+
+## Intro
+
 This demo is built for running on Vagrant and is using the Trusted Postgres Architect (TPA) to deploy a 2-node cluster managed by EDB Failover Manager, a Barman server and a PEM server.
 The objective of the demo environment is to show the value of Postgres Enterprise Manager.
 
@@ -81,20 +97,13 @@ Promote Status:
 ### Configuring pgbench
 The provisioning script initializes Pgbench into the `postgres` database on `pg1` and creates a 30 min schedule cron to run pgbench on this database. 
 
+### Enable all probes
+To be able to show all use cases you have to enable extra probes:
+In the top menu, select `Management / Manage Probes...`
+Click `manage Custom Probes` and switch `Show System Probes?` to On.
+Enable all probes except `xDB Replication` and the `PGD` probes. We are not using PGD here (yet?).
 
-## Demo use cases
 
-[Overview PEM dashboards and Alerts](usecases/dashboards.md)
-
-[Index Advisor](usecases/indexadvisor.md)
-
-[Performance Diagnostics](usecases/performance.md)
-
-[Barman (WIP)](usecases/barman.md)
-
-[Data Dictionary](usecsaes/datadictionary.md)
-
-[REST API (WIP)](usecases/restapi.md)
 
 ## Demo cleanup
 To clean up the demo environment you just have to run `99-deprovision.sh`. This script will remove the virtual machines and the cluster configuration.

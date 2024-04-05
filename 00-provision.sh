@@ -22,9 +22,9 @@ if [ -d "pgcluster" ]; then
   rm -rf pgcluster
 fi
 
-printf "${G}--- \n"
-printf "${G}--- Installing TPAexec.\n"
-printf "${G}--- \n"
+printf "${G}--- ${N}\n"
+printf "${G}--- Installing TPAexec.${N}\n"
+printf "${G}--- ${N}\n"
 
 # Repo
 curl -1sLf "https://downloads.enterprisedb.com/$credentials/enterprise/setup.rpm.sh" | sudo -E bash
@@ -45,9 +45,9 @@ tpaexec setup
 # Test
 tpaexec selftest
 
-printf "${G}--- \n"
-printf "${G}--- Creating cluster definitions and provisioning cluster infrastructure.\n"
-printf "${G}--- \n"
+printf "${G}--- ${N}\n"
+printf "${G}--- Creating cluster definitions and provisioning cluster infrastructure.${N}\n"
+printf "${G}--- ${N}\n"
 
 # Create share PEM server.
 tpaexec configure pemcluster \
@@ -71,27 +71,27 @@ tpaexec configure pgcluster \
 
 cp pgcluster.yml pgcluster/config.yml
 
-# Provision
-tpaexec provision pemcluster
-tpaexec provision pgcluster
+# Provision PEM cluster
+printf "${G}--- ${N}\n"
+printf "${G}--- Deploying PEM cluster.${N}\n"
+printf "${G}--- ${N}\n"
 
 # Copying ssh keys
-cp ~/.ssh/id_rsa.pub pemcluster/id_pemcluster.pub
-cp ~/.ssh/id_rsa pemcluster/id_pemcluster
-cp ~/.ssh/id_rsa.pub pgcluster/id_pgcluster.pub
-cp ~/.ssh/id_rsa pgcluster/id_pgcluster
+#cp ~/.ssh/id_rsa.pub pemcluster/id_pemcluster.pub
+#cp ~/.ssh/id_rsa pemcluster/id_pemcluster
+#cp ~/.ssh/id_rsa.pub pgcluster/id_pgcluster.pub
+#cp ~/.ssh/id_rsa pgcluster/id_pgcluster
 
 # add pem-clusters key to the ssh-agent (handy for `aws` platform)
+cd pemcluster
 eval `ssh-agent -s`
-ssh-add pemcluster/id_pemcluster
-ssh-keyscan -4 $PEMSERVERIP >> pgcluster/known_hosts
-ssh-copy-id -f -i pgcluster/id_pgcluster.pub -o 'UserKnownHostsFile=tpa_known_hosts' vagrant@$PEMSERVERIP
+ssh-add id_pemcluster
+cd ../pgcluster
+ssh-keyscan -4 $PEMSERVERIP >> known_hosts
+ssh-copy-id -i id_pgcluster.pub -o 'UserKnownHostsFile=tpa_known_hosts' vagrant@$PEMSERVERIP
+cd ..
 
-printf "${G}--- \n"
-printf "${G}--- Deploying PEM cluster.\n"
-printf "${G}--- \n"
-
-# Provision & eploy PEM
+tpaexec provision pemcluster
 tpaexec deploy pemcluster
 
 # Get PEM credentials
@@ -102,14 +102,27 @@ chmod 600 pem_creds
 chown root:root pem_creds
 export EDB_PEM_CREDENTIALS_FILE=/vagrant/pem_creds
 
-printf "${G}--- \n"
-printf "${G}--- Deploying Postgres cluster.\n"
-printf "${G}--- \n"
+printf "${G}--- ${N}\n"
+printf "${G}--- Deploying Postgres cluster.${N}\n"
+printf "${G}--- ${N}\n"
 
-# Provision & eploy PEM
+# Provision PG cluster.
+printf "${G}--- ${N}\n"
+printf "${G}--- Deploying Postgres cluster.${N}\n"
+printf "${G}--- ${N}\n"
+
+tpaexec provision pgcluster
 tpaexec deploy pgcluster
 
 # Difficult way to get a clean password from ansible
+printf "${G}--- ${N}\n"
+printf "${G}--- Collecting passwords.${N}\n"
+printf "${G}--- ${N}\n"
+
+raw=$(tpaexec show-password pemcluster enterprisedb)
+IFS=$'\n' read -r clean <<< "$raw"
+export PEMPASSWORD="$clean"
+
 raw=$(tpaexec show-password pgcluster enterprisedb)
 IFS=$'\n' read -r clean <<< "$raw"
 export EDBPASSWORD="$clean"
@@ -118,19 +131,19 @@ raw=$(tpaexec show-password pgcluster dba)
 IFS=$'\n' read -r clean <<< "$raw"
 export DBAPASSWORD="$clean"
 
-printf "${G}--- \n"
-printf "${G}--- Initializing pgbench in database ${R}postgres${G} on ${R}pg1${G} and add crontab to run on 30 min intervals.\n"
-printf "${G}--- \n"
-PG1IP=192.168.0.211
+printf "${G}--- ${N}\n"
+printf "${G}--- Initializing pgbench in database ${R}postgres${G} on ${R}pg1${G} and add crontab to run on 30 min intervals.${N}\n"
+printf "${G}--- ${N}\n"
+
 ssh $PG1IP << EOF
 sudo su - enterprisedb 
 pgbench -h localhost -p 5444 -i -U enterprisedb postgres
 echo "0,30 * * * * pgbench -h localhost -p 5444 -T 100 -c 10 -j 2 -U enterprisedb postgres" | crontab -
 EOF
 
-PEMSERVERIP=192.168.0.214
 printf "${G}--- \n"
-printf "${G}--- Provisioning complete. You can now access PEM on ${R}https://$PEMSERVERIP/pem${G} using userid ${R}enterprisedb${G} and password ${R}$EDBPASSWORD\n"
-printf "\n"
-printf "${G}--- There is also a user ${R}dba${G} with password ${R}$DBAPASSWORD\n"
-printf "${G}--- \n"
+printf "${G}--- Provisioning complete. Y
+printf "${G}--- You can now access PEM on ${R}https://$PEMSERVERIP/pem${G} using userid ${R}enterprisedb${G} and password ${R}$PEMPASSWORD${N}\n"
+printf "${N}\n"
+printf "${G}--- For Postgres on ${R}pg1${G} and ${R}pg2${G} there are two users: ${R}enterprisedb${G} with password ${R}$EDBPASSWORD${G} and ${R}dba${G} with password ${R}$DBAPASSWORD${G}${N}\n"
+printf "${G}--- ${N}\n"

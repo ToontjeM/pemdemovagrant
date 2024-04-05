@@ -1,0 +1,78 @@
+---
+architecture: M1
+cluster_name: pgcluster
+cluster_tags: {}
+
+cluster_vars:
+  edb_repositories:
+  - enterprise
+  postgres_flavour: epas
+  postgres_version: '15'
+  failover_manager: efm
+  enable_pg_backup_api: true
+  yum_repository_list:
+  - EPEL
+  extra_postgres_packages:
+    common:
+    - edb-as15-server-edb_wait_states
+    - edb-as15-server-sqlprofiler
+    - edb-as15-server-indexadvisor
+  postgres_extensions:
+  - edb_wait_states
+  - sql_profiler
+  - index_advisor
+  preload_extensions:
+  - edb_wait_states
+  - sql-profiler
+  - index_advisor
+  postgres_conf_settings:
+    logging_collector: "on" 
+  postgres_users:
+  - username: dba
+    generate_password: true
+    role_attrs:
+    - superuser
+    - replication
+
+instance_defaults:
+  platform: bare
+  vars:
+    ansible_user: root
+
+instances:
+- Name: pg1
+  node: 1
+  public_ip: 192.168.0.211
+  role:
+  - primary
+  - pem-agent  
+  backup: barman
+
+- Name: pg2
+  node: 2
+  public_ip: 192.168.0.212
+  role:
+  - replica
+  - pem-agent
+  upstream: pg1
+
+- Name: barman
+  node: 3
+  public_ip: 192.168.0.213
+  role:
+  - barman
+  - log-server
+  - monitoring-server
+  - pem-agent
+  - efm-witness
+  vars:
+    barman_last_backup_maximum_age: 1 DAY
+
+- Name: pemserver
+  node: 4
+  platform: bare
+  public_ip: 192.168.0.214
+  role:
+  - pem-server
+  vars:
+    pem_shared: true

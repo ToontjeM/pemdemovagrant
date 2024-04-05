@@ -1,6 +1,6 @@
 ---
 architecture: M1
-cluster_name: pemdemovagrant
+cluster_name: pemcluster
 cluster_tags: {}
 
 cluster_vars:
@@ -8,7 +8,7 @@ cluster_vars:
   - enterprise
   postgres_flavour: epas
   postgres_version: '15'
-  failover_manager: efm
+  failover_manager: repmgr
   enable_pg_backup_api: true
   yum_repository_list:
   - EPEL
@@ -26,7 +26,7 @@ cluster_vars:
   - sql-profiler
   - index_advisor
   postgres_conf_settings:
-    logging_collector = on 
+    logging_collector: "on"
   postgres_users:
   - username: dba
     generate_password: true
@@ -40,36 +40,15 @@ instance_defaults:
     ansible_user: root
 
 instances:
-- Name: pg1
-  node: 1
-  public_ip: 192.168.0.211
-  role:
-  - primary
-  - pem-agent  
-  backup: barman
-
-- Name: pg2
-  node: 2
-  public_ip: 192.168.0.212
-  role:
-  - replica
-  - pem-agent
-  upstream: pg1
-
-- Name: barman
-  node: 3
-  public_ip: 192.168.0.213
-  role:
-  - barman
-  - log-server
-  - monitoring-server
-  - pem-agent
-  - efm-witness
-  vars:
-    barman_last_backup_maximum_age: 1 DAY
-
 - Name: pemserver
-  node: 4
+  node: 1
   public_ip: 192.168.0.214
   role:
   - pem-server
+  vars:
+    pem_postgres_extra_hba_settings:
+    - hostssl pem +pem_agent 192.168.0.211/32 cert
+    - hostssl pem +pem_agent 192.168.0.212/32 cert
+    - hostssl pem +pem_agent 192.168.0.213/32 cert
+    - hostssl pem +pem_agent 192.168.0.214/32 cert
+      

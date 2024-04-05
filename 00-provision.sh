@@ -12,11 +12,19 @@ then
   exit
 fi
 
-. ./env.sh
+source ./env.sh
 
-if [ -d "pemdemobagrant" ]; then
-  rm -rf pemdemovagrant
+if [ -d "pemcluster" ]; then
+  rm -rf pemcluster
 fi
+
+if [ -d "pgcluster" ]; then
+  rm -rf pgcluster
+fi
+
+printf "${G}--- \n"
+printf "${G}--- Installing TPAexec.\n"
+printf "${G}--- \n"
 
 # Repo
 curl -1sLf "https://downloads.enterprisedb.com/$credentials/enterprise/setup.rpm.sh" | sudo -E bash
@@ -31,58 +39,88 @@ source ~/.bash_profile
 #export PATH=$PATH:/opt/EDB/TPA/bin
 #export EDB_SUBSCRIPTION_TOKEN=${credentials}
 
-
 # Install dependencies
 tpaexec setup
-
-ip=192.168.56
-cat > hostnames.txt << EOF
-pg1 $ip.11
-pg2 $ip.12
-barman $ip.13
-pemserver $ip.14
-EOF
 
 # Test
 tpaexec selftest
 
-# Create TPA environment.
-tpaexec configure pemdemovagrant \
+printf "${G}--- \n"
+printf "${G}--- Creating cluster definitions and provisioning cluster infrastructure.\n"
+printf "${G}--- \n"
+
+# Create share PEM server.
+tpaexec configure pemcluster \
     --architecture M1 \
     --enable-efm \
     --redwood \
     --platform bare \
-    --hostnames-from hostnames.txt \
     --edb-postgres-advanced 15 \
-    --no-git \
-    --hostnames-unsorted
+    --no-git
 
-# Modify pg_hba.conf
-cp pemdemovagrant/config.yml pemdemovagrant/config.yml.1
-cp configyml.backup pemdemovagrant/config.yml
+cp pemcluster.yml pemcluster/config.yml
+
+# Create Postgres environment.
+tpaexec configure pgcluster \
+    --architecture M1 \
+    --enable-efm \
+    --redwood \
+    --platform bare \
+    --edb-postgres-advanced 15 \
+    --no-git
+
+cp pgcluster.yml pgcluster/config.yml
 
 # Provision
-tpaexec provision pemdemovagrant
+tpaexec provision pemcluster
+tpaexec provision pgcluster
 
 # Copying ssh keys
-rm -f pemdemovagran/id_pemdemovagrant.pub
-rm -f pemdemovagrant/id_pemdemovagrant
-cp ~/.ssh/id_rsa.pub pemdemovagrant/id_pemdemovagrant.pub
-cp ~/.ssh/id_rsa pemdemovagrant/id_pemdemovagrant
+cp ~/.ssh/id_rsa.pub pemcluster/id_pemcluster.pub
+cp ~/.ssh/id_rsa pemcluster/id_pemcluster
+cp ~/.ssh/id_rsa.pub pgcluster/id_pgcluster.pub
+cp ~/.ssh/id_rsa pgcluster/id_pgcluster
 
-# Deploy
-tpaexec deploy pemdemovagrant
+# add pem-clusters key to the ssh-agent (handy for `aws` platform)
+eval `ssh-agent -s`
+ssh-add pemcluster/id_pemcluster
+ssh-keyscan -4 $PEMSERVERIP >> pgcluster/known_hosts
+ssh-copy-id -f -i pgcluster/id_pgcluster.pub -o 'UserKnownHostsFile=tpa_known_hosts' vagrant@$PEMSERVERIP
+
+printf "${G}--- \n"
+printf "${G}--- Deploying PEM cluster.\n"
+printf "${G}--- \n"
+
+# Provision & eploy PEM
+tpaexec deploy pemcluster
+
+# Get PEM credentials
+raw=$(tpaexec show-password pemcluster enterprisedb)
+IFS=$'\n' read -r clean <<< "$raw"
+echo enterprisedb:$clean > pem_creds
+chmod 600 pem_creds
+chown root:root pem_creds
+export EDB_PEM_CREDENTIALS_FILE=/vagrant/pem_creds
+
+printf "${G}--- \n"
+printf "${G}--- Deploying Postgres cluster.\n"
+printf "${G}--- \n"
+
+# Provision & eploy PEM
+tpaexec deploy pgcluster
 
 # Difficult way to get a clean password from ansible
-raw=$(tpaexec show-password pemdemovagrant enterprisedb)
+raw=$(tpaexec show-password pgcluster enterprisedb)
 IFS=$'\n' read -r clean <<< "$raw"
 export EDBPASSWORD="$clean"
 
-raw=$(tpaexec show-password pemdemovagrant dba)
+raw=$(tpaexec show-password pgcluster dba)
 IFS=$'\n' read -r clean <<< "$raw"
 export DBAPASSWORD="$clean"
 
+printf "${G}--- \n"
 printf "${G}--- Initializing pgbench in database ${R}postgres${G} on ${R}pg1${G} and add crontab to run on 30 min intervals.\n"
+printf "${G}--- \n"
 PG1IP=192.168.0.211
 ssh $PG1IP << EOF
 sudo su - enterprisedb 
@@ -91,7 +129,8 @@ echo "0,30 * * * * pgbench -h localhost -p 5444 -T 100 -c 10 -j 2 -U enterprised
 EOF
 
 PEMSERVERIP=192.168.0.214
-printf "\n"
+printf "${G}--- \n"
 printf "${G}--- Provisioning complete. You can now access PEM on ${R}https://$PEMSERVERIP/pem${G} using userid ${R}enterprisedb${G} and password ${R}$EDBPASSWORD\n"
 printf "\n"
 printf "${G}--- There is also a user ${R}dba${G} with password ${R}$DBAPASSWORD\n"
+printf "${G}--- \n"

@@ -1,5 +1,10 @@
-pemdemovagrant/*
+pemcluster/*
+pgcluster/*
 .edbtoken
 ansible.log
 .vagrant/*
-hostnames.txt
+pem_creds
+tpa_known_hosts
+known_hosts
+key
+key.pub

@@ -7,7 +7,7 @@
 | [Performance Diagnostics](usecases/performance.md) | [Barman (WIP)](usecases/barman.md) |
 | [Data Dictionary](usecases/datadictionary.md) | [Capacity Manager (WIP)](usecases/capacitymanager.md) |
 | [Index Advisor](usecases/indexadvisor.md) | [Log Manager (WIP)](usecases/logmanager.md) |
-| | [Audit Manager (WIP)](usecases/auditmanager.md)  |
+| [Audit Manager](usecases/auditmanager.md) | |
 | | [Auto Discovery (WIP)](usecases/autodiscovery.md) 
 | | [Manage Probes (WIP)](usecases/probes.md) | 
 | | [Postgres Expert (WIP)](usecases/pgexpert.md) |
@@ -68,9 +68,11 @@ After setting up the demo you need to disconnect from PG1 and PG2, add the EFM p
 EFM cluster name : pemdemovagrant
 EFM installation path : /usr/edb/efm-4.7/bin/
 ```
+Also it's a good idea to add the serviceID to the agent configuration. Normally the serviceID for EDB Postgres Advanced Server 15 is `edb-as-15`, however, because this environment is deplyed using TPA, the ServiceID is `postgres`.
+
 You can check the EFM cluster status by doing the following:
 ```
-vagrant ssh pg1
+$ vagrant ssh pg1
 Last login: Thu Apr  4 09:58:00 2024 from 10.0.2.2
 [vagrant@pg1 ~]$ sudo su - efm
 Last login: Thu Apr  4 11:01:25 UTC 2024 on pts/0

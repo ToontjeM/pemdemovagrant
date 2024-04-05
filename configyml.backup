@@ -26,18 +26,13 @@ cluster_vars:
   - sql-profiler
   - index_advisor
   postgres_conf_settings:
-    wal_level: replica
-    max_wal_senders: 10
-    wal_keep_size: 500
-    max_replication_slots: 10
+    logging_collector = on 
   postgres_users:
   - username: dba
     generate_password: true
     role_attrs:
     - superuser
     - replication
-  postgres_hba_settings:
-  - host all all 0.0.0.0/24 scram-sha-256
 
 instance_defaults:
   platform: bare
@@ -62,7 +57,6 @@ instances:
   upstream: pg1
 
 - Name: barman
-  location: main
   node: 3
   public_ip: 192.168.0.213
   role:
@@ -72,7 +66,7 @@ instances:
   - pem-agent
   - efm-witness
   vars:
-    barman_last_backup_maximum_age: 2 DAYS
+    barman_last_backup_maximum_age: 1 DAY
 
 - Name: pemserver
   node: 4

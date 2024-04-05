@@ -42,7 +42,7 @@ instance_defaults:
 instances:
 - Name: pg1
   node: 1
-  public_ip: 192.168.0.211
+  ip_address: 192.168.0.211
   role:
   - primary
   - pem-agent  
@@ -50,7 +50,7 @@ instances:
 
 - Name: pg2
   node: 2
-  public_ip: 192.168.0.212
+  ip_address: 192.168.0.212
   role:
   - replica
   - pem-agent
@@ -58,7 +58,7 @@ instances:
 
 - Name: barman
   node: 3
-  public_ip: 192.168.0.213
+  ip_address: 192.168.0.213
   role:
   - barman
   - log-server
@@ -71,7 +71,7 @@ instances:
 - Name: pemserver
   node: 4
   platform: bare
-  public_ip: 192.168.0.214
+  ip_address: 192.168.0.214
   role:
   - pem-server
   vars:

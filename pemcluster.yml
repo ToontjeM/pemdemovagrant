@@ -42,7 +42,7 @@ instance_defaults:
 instances:
 - Name: pemserver
   node: 1
-  public_ip: 192.168.0.214
+  ip_address: 192.168.0.214
   role:
   - pem-server
   vars:

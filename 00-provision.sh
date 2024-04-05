@@ -49,6 +49,13 @@ printf "${G}--- ${N}\n"
 printf "${G}--- Creating cluster definitions and provisioning cluster infrastructure.${N}\n"
 printf "${G}--- ${N}\n"
 
+cat > hostnames.txt << EOF
+pg1 $PG1IP
+pg2 $PG2IP
+barman $BARMANIP
+pemserver $PEMSERVERIP
+EOF
+
 # Create share PEM server.
 tpaexec configure pemcluster \
     --architecture M1 \
@@ -56,7 +63,9 @@ tpaexec configure pemcluster \
     --redwood \
     --platform bare \
     --edb-postgres-advanced 15 \
-    --no-git
+    --no-git \
+    --hostnames-from hostnames.txt \
+    --hostnames-unsorted
 
 cp pemcluster.yml pemcluster/config.yml
 
@@ -67,7 +76,9 @@ tpaexec configure pgcluster \
     --redwood \
     --platform bare \
     --edb-postgres-advanced 15 \
-    --no-git
+    --no-git \
+    --hostnames-from hostnames.txt \
+    --hostnames-unsorted
 
 cp pgcluster.yml pgcluster/config.yml
 
@@ -77,10 +88,10 @@ printf "${G}--- Deploying PEM cluster.${N}\n"
 printf "${G}--- ${N}\n"
 
 # Copying ssh keys
-#cp ~/.ssh/id_rsa.pub pemcluster/id_pemcluster.pub
-#cp ~/.ssh/id_rsa pemcluster/id_pemcluster
-#cp ~/.ssh/id_rsa.pub pgcluster/id_pgcluster.pub
-#cp ~/.ssh/id_rsa pgcluster/id_pgcluster
+cp ~/.ssh/id_rsa.pub pemcluster/id_pemcluster.pub
+cp ~/.ssh/id_rsa pemcluster/id_pemcluster
+cp ~/.ssh/id_rsa.pub pgcluster/id_pgcluster.pub
+cp ~/.ssh/id_rsa pgcluster/id_pgcluster
 
 # add pem-clusters key to the ssh-agent (handy for `aws` platform)
 cd pemcluster
@@ -141,8 +152,8 @@ pgbench -h localhost -p 5444 -i -U enterprisedb postgres
 echo "0,30 * * * * pgbench -h localhost -p 5444 -T 100 -c 10 -j 2 -U enterprisedb postgres" | crontab -
 EOF
 
-printf "${G}--- \n"
-printf "${G}--- Provisioning complete. Y
+printf "${G}--- ${N}\n"
+printf "${G}--- Provisioning complete.${N}\n"
 printf "${G}--- You can now access PEM on ${R}https://$PEMSERVERIP/pem${G} using userid ${R}enterprisedb${G} and password ${R}$PEMPASSWORD${N}\n"
 printf "${N}\n"
 printf "${G}--- For Postgres on ${R}pg1${G} and ${R}pg2${G} there are two users: ${R}enterprisedb${G} with password ${R}$EDBPASSWORD${G} and ${R}dba${G} with password ${R}$DBAPASSWORD${G}${N}\n"

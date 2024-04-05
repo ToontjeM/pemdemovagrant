@@ -50,12 +50,14 @@ The EFM cluster which is created is called `pgcluster`.
 Status of the EFM cluster can be shown using `/usr/edb/efm-4.7/bin/efm cluster-status pgcluster` from `pg1` and as user `efm`.
 
 ### Provisioning VM's.
-Provision the hosts using `vagrant up`. This will create the bare virtual machines. These machines will have the current directory mounted in their filesystem under `/vagrant`
+Provision the hosts using `vagrant up`. This will create the bare virtual machines and will take appx. 5 minutes to complete. 
+
+These machines will have the current directory mounted in their filesystem under `/vagrant`
 
 ### Provisioning software using TPA
 SSH into the `console` using `vagrant ssh console` and become root using `sudo - su`
 
-From the `/vagrant` directory, run `00-provision.sh` to deploy the environment. This deployment will take appx. 20 minutes to complete.
+From the `/vagrant` directory, run `00-provision.sh` to deploy the environment. This deployment will take appx. 30 minutes to complete.
 
 After successful deployment PEM should be available on `https://<IP of the pemserver>/pem`. 
 

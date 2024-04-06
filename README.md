@@ -124,3 +124,4 @@ To clean up the demo environment you just have to run `99-deprovision.sh`. This 
 
 ## TODO / To fix
 ![](images/streamingreplication.png)
+![](images/down.png)

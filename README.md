@@ -8,13 +8,11 @@
 | [Data Dictionary](usecases/datadictionary.md) | [Capacity Manager (WIP)](usecases/capacitymanager.md) |
 | [Index Advisor](usecases/indexadvisor.md) | [Log Manager (WIP)](usecases/logmanager.md) |
 | [Audit Manager](usecases/auditmanager.md) | [Reports (WIP)](usecases/reports.md) |
-| | [Auto Discovery (WIP)](usecases/autodiscovery.md) |
+| [Postgres Expert](usecases/pgexpert.md) | [Auto Discovery (WIP)](usecases/autodiscovery.md) |
 | | [Manage Probes (WIP)](usecases/probes.md) | 
-| | [Postgres Expert (WIP)](usecases/pgexpert.md) |
 | | [Postgres Log Analysis Expert (WIP)](usecases/loganalysis.md) | 
 | | [Scheduled Tasks (WIP)](usecases/schedtasks.md) |
 | | [Tuning Wizard (WIP)](usecases/tuningwizard.md) | 
-| |  |
 
 ## Intro
 
